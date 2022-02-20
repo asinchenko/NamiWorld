@@ -1,0 +1,1 @@
+Hey! That's my first Rust/Bevy Game. Welcome to NamiWorld!
