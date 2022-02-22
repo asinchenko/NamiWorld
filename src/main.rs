@@ -1,10 +1,11 @@
+mod menu;
 mod pug;
 
 use bevy::render::view::Layer;
-use bevy::{
-    core::FixedTimestep, ecs::schedule::SystemSet, prelude::*, render::camera::CameraPlugin,
-};
+use bevy::{core::FixedTimestep, ecs::schedule::SystemSet, prelude::*};
 
+use menu::*;
+use menu::*;
 use pug::*;
 use rand::Rng;
 
@@ -21,14 +22,16 @@ impl WindowRes {
     }
 }
 
-pub const JUMP_IMPULSE: f32 = 200.0;
+pub const JUMP_IMPULSE: f32 = 500.0;
 pub const PLAYER_SPEED: f32 = 200.0;
 
 fn main() {
     App::new()
-        .add_system(window_resize_system.system())
+        .add_system(window_resize_system)
         .add_plugin(PugPlugin)
         .add_plugins(DefaultPlugins)
+        .add_state(AppState::MainMenu)
+        .add_plugin(MainMenuPlugin)
         .run();
 }
 
@@ -36,4 +39,11 @@ fn window_resize_system(mut windows: ResMut<Windows>) {
     let window = windows.get_primary_mut().unwrap();
     let windowresolution = WindowRes::full_hd();
     window.set_resolution(windowresolution.x, windowresolution.y);
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum AppState {
+    MainMenu,
+    InGame,
+    Pause,
 }
