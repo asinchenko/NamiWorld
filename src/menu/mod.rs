@@ -1,9 +1,6 @@
-use crate::pug;
-
 use crate::AppState;
 use bevy::app::AppExit;
 use bevy::prelude::*;
-use pug::cleanup;
 
 #[derive(Component)]
 pub enum MenuButton {
@@ -11,22 +8,24 @@ pub enum MenuButton {
     Quit,
 }
 
+#[derive(Component)]
+struct MainMenuData {
+    camera_entity: Entity,
+    ui_root: Entity,
+}
+
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuMaterials>()
-            .add_system_set(
-                SystemSet::on_enter(crate::AppState::MainMenu)
-                    .with_system(cleanup)
-                    .with_system(setup),
-            )
-            .add_system(button_system)
-            .add_system(button_press_system)
-            .add_system_set(SystemSet::on_exit(crate::AppState::MainMenu).with_system(cleanup))
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame).with_system(back_to_main_menu_controls),
-            );
+            .add_system(button_system.label("Button_System"))
+            .add_system(button_press_system.label("Button_Press_System"))
+            .add_system_set(SystemSet::on_update(AppState::InGame).with_system(back_to_main_menu_controls.label("Backing to menu control system")))
+            //.add_system_set(SystemSet:
+            .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(cleanup))
+            .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup))
+            ;
     }
 }
 
@@ -56,9 +55,9 @@ impl FromWorld for MenuMaterials {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<MenuMaterials>) {
-    commands.spawn_bundle(UiCameraBundle::default());
+    let camera_entity = commands.spawn_bundle(UiCameraBundle::default()).id();
 
-    commands
+    let ui_root = commands
         .spawn_bundle(root(&materials))
         .with_children(|parent| {
             // left vertical fill (border)
@@ -79,9 +78,15 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<
                                 .with_children(|parent| {
                                     parent.spawn_bundle(button_text(&asset_server, &materials, "Quit"));
                                 })
-                                .insert(MenuButton::Quit);
+                                .insert(MenuButton::Quit)
+                                
+                                ;
                         });
                 });
+        }).id();
+        commands.insert_resource(MainMenuData {
+            camera_entity,
+            ui_root,
         });
 }
 
@@ -119,7 +124,7 @@ fn button_system(
         match *interaction {
             Interaction::Clicked => *material = materials.button_pressed.clone(),
             Interaction::Hovered => *material = materials.button_hovered.clone(),
-            Interaction::None => *material = materials.button.clone(),
+            Interaction::None    => *material = materials.button.clone(),
         }
     }
 }
@@ -199,4 +204,9 @@ fn back_to_main_menu_controls(
             keys.reset(KeyCode::Escape);
         }
     }
+}
+
+fn cleanup(mut commands: Commands, menu_data: Res<MainMenuData>) {
+    commands.entity(menu_data.ui_root).despawn_recursive();
+    commands.entity(menu_data.camera_entity).despawn_recursive();
 }

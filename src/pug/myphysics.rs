@@ -29,7 +29,7 @@ pub fn return_rigid_body(
             gravity_scale: gravity,
             ..Default::default()
         }),
-        activation: RigidBodyActivationComponent(RigidBodyActivation::cannot_sleep()),
+        activation: RigidBodyActivationComponent(RigidBodyActivation::active()),
         //collision detection
         ccd: RigidBodyCcdComponent(RigidBodyCcd {
             ccd_enabled: true,
@@ -99,6 +99,16 @@ pub fn player_movement(
         if keyboard_input.pressed(KeyCode::Right) {
             velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
             sprite.flip_x = true;
+        }
+    }
+}
+pub fn death_by_height(
+    mut commands: Commands,
+    players: Query<(Entity, &RigidBodyPositionComponent), With<Player>>,
+) {
+    for (entity, position) in players.iter() {
+        if position.position.translation.y < -200. {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
