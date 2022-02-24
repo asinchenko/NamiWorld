@@ -1,11 +1,14 @@
 mod camera;
 mod myphysics;
+mod background;
+mod enemy;
 
 use crate::pug::myphysics::death_by_height;
 use crate::pug::camera::new_camera_2d;
 use crate::AppState;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use background::*;
 
 #[derive(Component)]
 struct Floor{
@@ -43,12 +46,13 @@ impl Plugin for PugPlugin {
         .add_system(camera_follow_player.label("Camera system"))
             .add_system_set(
                 SystemSet::on_enter(crate::AppState::InGame)
+                    .with_system(background::spawn_background)
                     .with_system(sprite_spawn)
-                    .with_system(spawn_floor),
+                    .with_system(spawn_floor)
+                    ,
             )
             .add_system_set(
                 SystemSet::on_update(crate::AppState::InGame)
-                    .with_system(check_delete)
                     .with_system(myphysics::player_jumps.label("Player Jumps System"))
                     .with_system(myphysics::jump_reset.label("Jump Reset System"))
                     .with_system(myphysics::player_movement.label("Player Movement System"))
@@ -61,14 +65,14 @@ impl Plugin for PugPlugin {
 }
 //spawn Puggy
 fn sprite_spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // commands.spawn_bundle(SpriteBundle {
-    //     transform: Transform {
-    //         translation: Vec3::new(0.0, 300.0, 0.0),
-    //         ..Default::default()
-    //     },
-    //     texture: asset_server.load("background.png"),
-    //     ..Default::default()
-    // });
+    commands.spawn_bundle(SpriteBundle {
+        transform: Transform {
+            translation: Vec3::new(0.0, 300.0, 0.0),
+            ..Default::default()
+        },
+        texture: asset_server.load("background.png"),
+        ..Default::default()
+    });
     let player_entity = commands
         .spawn_bundle(SpriteBundle {
             transform: Transform {
@@ -84,7 +88,7 @@ fn sprite_spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         })
         .insert_bundle(myphysics::return_rigid_body(0.0, 500.0, "dynamic", 200.0))
-        .insert_bundle(myphysics::return_collider(0.5, 0.5, 0.1))
+        .insert_bundle(myphysics::return_collider(35., 10., 0.1))
         .insert(myphysics::rigid_body_position_sync())
         .insert(Player {
             speed: crate::PLAYER_SPEED,
@@ -101,11 +105,12 @@ fn sprite_spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-pub fn spawn_floor(mut commands: Commands) {
+fn spawn_floor(mut commands: Commands) {
   add_tile(&mut commands, 0.);
   for x in 0..2000 {
       if x % 200 == 0 {
-          add_tile(&mut commands, x as f32)
+          add_tile(&mut commands, x as f32);
+          enemy::insert_monster_at(&mut commands, x as f32, 0.);
       }
   }
 }
@@ -132,8 +137,6 @@ fn add_tile(commands: &mut Commands, x: f32) {
 });
 }
 
-
-
 fn camera_follow_player(
   mut cameras: Query<&mut Transform, With<Camera>>,
   players: Query<&RigidBodyPositionComponent, With<Player>>,
@@ -141,7 +144,7 @@ fn camera_follow_player(
   for player in players.iter() {
       for mut camera in cameras.iter_mut() {
           camera.translation.x = player.position.translation.x;
-          camera.translation.y = player.position.translation.y;
+          camera.translation.y = player.position.translation.y+300.;
       }
   }
 }
@@ -167,17 +170,3 @@ fn query_entities(mut commands: Commands,query: Query<Entity>){
   }
   println!{"STOPPED"};
 }
-
-fn check_delete(
-  keyboard_input: Res<Input<KeyCode>>,
-  mut commands: Commands, mut player_data: Res<PlayerData>, query: Query<Entity>
-) {
-   if keyboard_input.pressed(KeyCode::Down) {
-  commands
-      .entity(player_data.player_entity)
-      .despawn_recursive();
-   commands
-       .entity(player_data.camera_entity)
-       .despawn_recursive();
-    }
-  }

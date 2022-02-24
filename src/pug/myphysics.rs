@@ -105,10 +105,11 @@ pub fn player_movement(
 pub fn death_by_height(
     mut commands: Commands,
     players: Query<(Entity, &RigidBodyPositionComponent), With<Player>>,
+    mut app_state: ResMut<State<crate::AppState>>,
 ) {
     for (entity, position) in players.iter() {
         if position.position.translation.y < -200. {
-            commands.entity(entity).despawn();
+            app_state.set(crate::AppState::MainMenu).unwrap();
         }
     }
 }
