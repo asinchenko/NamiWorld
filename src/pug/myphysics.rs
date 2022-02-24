@@ -108,7 +108,7 @@ pub fn death_by_height(
 ) {
     for (entity, position) in players.iter() {
         if position.position.translation.y < -200. {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
     }
 }

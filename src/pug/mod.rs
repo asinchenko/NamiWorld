@@ -155,7 +155,7 @@ fn cleanup_player(mut commands: Commands, player_data: Res<PlayerData>, query: Q
       .despawn_recursive();
 }
 
-fn cleanup(mut commands: Commands, query: Query<Entity>) {
+fn cleanup(mut commands: Commands, mut query: Query<Entity>) {
   for entity in query.iter() {
       commands.entity(entity).despawn_recursive();
   }
