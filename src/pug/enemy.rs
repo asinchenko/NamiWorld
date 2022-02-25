@@ -31,7 +31,7 @@ pub fn insert_monster_at(commands: &mut Commands, x: f32, y: f32) {
     };
 
     let collider = ColliderBundle {
-        shape: ColliderShapeComponent(ColliderShape::round_cuboid(30.35, 30.35, 0.1)),
+        shape: ColliderShapeComponent(ColliderShape::round_cuboid(50., 50., 0.1)),
         //mass_properties: ColliderMassPropsComponent(ColliderMassProps::Density(200.0).into()),
         flags: ColliderFlagsComponent(ColliderFlags {
             active_events: ActiveEvents::CONTACT_EVENTS,
@@ -59,16 +59,4 @@ pub fn insert_monster_at(commands: &mut Commands, x: f32, y: f32) {
         .insert(RigidBodyPositionSync::Discrete)
         .insert(Enemy)
         .insert(Monster);
-}
-
-fn should_add_enemy(x: usize) -> bool {
-    if x <= 5 {
-        return false;
-    }
-    let mut rng = thread_rng();
-    let random_number: u32 = rng.gen_range(0..100);
-    match random_number {
-        0..=90 => false,
-        _ => true,
-    }
 }

@@ -65,30 +65,24 @@ impl Plugin for PugPlugin {
 }
 //spawn Puggy
 fn sprite_spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(SpriteBundle {
-        transform: Transform {
-            translation: Vec3::new(0.0, 300.0, 0.0),
-            ..Default::default()
-        },
-        texture: asset_server.load("background.png"),
-        ..Default::default()
-    });
     let player_entity = commands
         .spawn_bundle(SpriteBundle {
             transform: Transform {
                 translation: Vec3::new(0.0, 0.0, 1.0),
                 ..Default::default()
             },
-            texture: asset_server.load("Pug.png"),
+            texture: asset_server.load("Pug1.png"),
             sprite: Sprite {
                 flip_y: false,
                 flip_x: false,
+                custom_size: Some(Vec2::new(150., 120.)),
+                color: Color::WHITE,
                 ..Default::default()
             },
             ..Default::default()
         })
         .insert_bundle(myphysics::return_rigid_body(0.0, 500.0, "dynamic", 200.0))
-        .insert_bundle(myphysics::return_collider(35., 10., 0.1))
+        .insert_bundle(myphysics::return_collider(50., 50., 0.1))
         .insert(myphysics::rigid_body_position_sync())
         .insert(Player {
             speed: crate::PLAYER_SPEED,
@@ -122,14 +116,14 @@ fn add_tile(commands: &mut Commands, x: f32) {
   let floor_entity = commands
       .spawn_bundle(SpriteBundle {
           sprite: Sprite {
-              color: Color::WHITE,
+              color: Color::GREEN,
               custom_size: Some(size),
               ..Default::default()
           },
           ..Default::default()
       })
       .insert_bundle(myphysics::return_rigid_body(x, 0. - 100., "Static", 0.))
-      .insert_bundle(myphysics::return_collider(110., 100., 0.1))
+      .insert_bundle(myphysics::return_collider(110., 25., 0.1))
       .insert(myphysics::rigid_body_position_sync())
       .id();
   commands.insert_resource(Floor {
